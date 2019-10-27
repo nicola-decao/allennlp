@@ -86,14 +86,12 @@ class LanguageModelingReader(DatasetReader):
             tokenized_strings = [self._tokenizer.tokenize(s) for s in instance_strings]
 
         for tokenized_string in tokenized_strings:
-            input_field = TextField(tokenized_string[:-1], self._token_indexers)
-            output_field = TextField(tokenized_string[1:], self._output_indexer)
-            yield Instance({"input_tokens": input_field, "output_tokens": output_field})
+            source = TextField(tokenized_string, self._token_indexers)
+            yield Instance({"source": source})
 
     @overrides
     def text_to_instance(self, sentence: str) -> Instance:  # type: ignore
 
         tokenized_string = self._tokenizer.tokenize(sentence)
-        input_field = TextField(tokenized_string[:-1], self._token_indexers)
-        output_field = TextField(tokenized_string[1:], self._output_indexer)
-        return Instance({"input_tokens": input_field, "output_tokens": output_field})
+        source = TextField(tokenized_string, self._token_indexers)
+        return Instance({"source": source})
