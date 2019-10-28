@@ -25,17 +25,9 @@ class TestLanguageModelingDatasetReader:
             "language",
         ]
 
-        assert [t.text for t in instances[2].fields["source"].tokens] == [
-            "modelling",
-            ".",
-            "Here",
-        ]
+        assert [t.text for t in instances[2].fields["source"].tokens] == ["modelling", ".", "Here"]
 
-        assert [t.text for t in instances[3].fields["source"].tokens] == [
-            "'s",
-            "another",
-            "one",
-        ]
+        assert [t.text for t in instances[3].fields["source"].tokens] == ["'s", "another", "one"]
 
         assert [t.text for t in instances[4].fields["source"].tokens] == [
             "for",
