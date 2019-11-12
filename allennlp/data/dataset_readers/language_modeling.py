@@ -77,23 +77,21 @@ class LanguageModelingReader(DatasetReader):
         if self._tokens_per_instance is not None:
             all_text = " ".join([x.replace("\n", " ").strip() for x in instance_strings])
             tokenized_text = self._tokenizer.tokenize(all_text)
-            num_tokens = self._tokens_per_instance + 1
+            num_tokens = self._tokens_per_instance
             tokenized_strings = []
             logger.info("Creating dataset from all text in file: %s", file_path)
-            for index in Tqdm.tqdm(range(0, len(tokenized_text) - num_tokens, num_tokens - 1)):
+            for index in Tqdm.tqdm(range(0, len(tokenized_text) - num_tokens, num_tokens)):
                 tokenized_strings.append(tokenized_text[index : (index + num_tokens)])
         else:
             tokenized_strings = [self._tokenizer.tokenize(s) for s in instance_strings]
 
         for tokenized_string in tokenized_strings:
-            input_field = TextField(tokenized_string[:-1], self._token_indexers)
-            output_field = TextField(tokenized_string[1:], self._output_indexer)
-            yield Instance({"input_tokens": input_field, "output_tokens": output_field})
+            source = TextField(tokenized_string, self._token_indexers)
+            yield Instance({"source": source})
 
     @overrides
     def text_to_instance(self, sentence: str) -> Instance:  # type: ignore
 
         tokenized_string = self._tokenizer.tokenize(sentence)
-        input_field = TextField(tokenized_string[:-1], self._token_indexers)
-        output_field = TextField(tokenized_string[1:], self._output_indexer)
-        return Instance({"input_tokens": input_field, "output_tokens": output_field})
+        source = TextField(tokenized_string, self._token_indexers)
+        return Instance({"source": source})

@@ -17,49 +17,20 @@ class TestLanguageModelingDatasetReader:
         # in here, anyway.
         assert len(instances) == 5
 
-        assert [t.text for t in instances[0].fields["input_tokens"].tokens] == ["This", "is", "a"]
-        assert [t.text for t in instances[0].fields["output_tokens"].tokens] == [
-            "is",
-            "a",
-            "sentence",
-        ]
+        assert [t.text for t in instances[0].fields["source"].tokens] == ["This", "is", "a"]
 
-        assert [t.text for t in instances[1].fields["input_tokens"].tokens] == [
+        assert [t.text for t in instances[1].fields["source"].tokens] == [
             "sentence",
             "for",
             "language",
         ]
-        assert [t.text for t in instances[1].fields["output_tokens"].tokens] == [
-            "for",
-            "language",
-            "modelling",
-        ]
 
-        assert [t.text for t in instances[2].fields["input_tokens"].tokens] == [
-            "modelling",
-            ".",
-            "Here",
-        ]
-        assert [t.text for t in instances[2].fields["output_tokens"].tokens] == [".", "Here", "'s"]
+        assert [t.text for t in instances[2].fields["source"].tokens] == ["modelling", ".", "Here"]
 
-        assert [t.text for t in instances[3].fields["input_tokens"].tokens] == [
-            "'s",
-            "another",
-            "one",
-        ]
-        assert [t.text for t in instances[3].fields["output_tokens"].tokens] == [
-            "another",
-            "one",
-            "for",
-        ]
+        assert [t.text for t in instances[3].fields["source"].tokens] == ["'s", "another", "one"]
 
-        assert [t.text for t in instances[4].fields["input_tokens"].tokens] == [
+        assert [t.text for t in instances[4].fields["source"].tokens] == [
             "for",
             "extra",
             "language",
-        ]
-        assert [t.text for t in instances[4].fields["output_tokens"].tokens] == [
-            "extra",
-            "language",
-            "modelling",
         ]
