@@ -317,8 +317,8 @@ class Vocabulary(Registrable):
     def from_files(
         cls,
         directory: str,
-        padding_token: str = DEFAULT_PADDING_TOKEN,
-        oov_token: str = DEFAULT_OOV_TOKEN,
+        padding_token: Optional[str] = DEFAULT_PADDING_TOKEN,
+        oov_token: Optional[str] = DEFAULT_OOV_TOKEN,
     ) -> "Vocabulary":
         """
         Loads a ``Vocabulary`` that was serialized using ``save_to_files``.
@@ -328,6 +328,9 @@ class Vocabulary(Registrable):
         directory : ``str``
             The directory containing the serialized vocabulary.
         """
+        padding_token = DEFAULT_PADDING_TOKEN if padding_token is None else padding_token
+        oov_token = DEFAULT_OOV_TOKEN if oov_token is None else oov_token
+        
         logger.info("Loading token dictionary from %s.", directory)
         with codecs.open(
             os.path.join(directory, NAMESPACE_PADDING_FILE), "r", "utf-8"

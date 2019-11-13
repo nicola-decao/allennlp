@@ -21,13 +21,14 @@ class ScalarMix(torch.nn.Module):
         do_layer_norm: bool = False,
         initial_scalar_parameters: List[float] = None,
         trainable: bool = True,
+        num_features: int = 1,
     ) -> None:
         super().__init__()
         self.mixture_size = mixture_size
         self.do_layer_norm = do_layer_norm
 
         if initial_scalar_parameters is None:
-            initial_scalar_parameters = [0.0] * mixture_size
+            initial_scalar_parameters = [[0.0] * num_features] * mixture_size
         elif len(initial_scalar_parameters) != mixture_size:
             raise ConfigurationError(
                 "Length of initial_scalar_parameters {} differs "
@@ -37,7 +38,7 @@ class ScalarMix(torch.nn.Module):
         self.scalar_parameters = ParameterList(
             [
                 Parameter(
-                    torch.FloatTensor([initial_scalar_parameters[i]]), requires_grad=trainable
+                    (torch.FloatTensor([initial_scalar_parameters[i]]).uniform_() - 0.5) * 1e-2, requires_grad=trainable
                 )
                 for i in range(mixture_size)
             ]

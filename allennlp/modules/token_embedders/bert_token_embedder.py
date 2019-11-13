@@ -95,6 +95,7 @@ class BertEmbedder(TokenEmbedder):
                 do_layer_norm=False,
                 initial_scalar_parameters=scalar_mix_parameters,
                 trainable=scalar_mix_parameters is None,
+                num_features=bert_model.config.hidden_size,
             )
         else:
             self._scalar_mix = None
