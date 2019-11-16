@@ -153,6 +153,7 @@ Registrable._registry[Optimizer] = {
     "adamax": torch.optim.Adamax,
     "averaged_sgd": torch.optim.ASGD,
     "bert_adam": BertAdam,
+    "adamw": torch.optim.AdamW,
 }
 
 
