@@ -5,6 +5,7 @@ import numpy
 import torch
 import torch.nn.functional as F
 from torch.nn import Linear
+from copy import deepcopy
 
 from allennlp.common.checks import ConfigurationError
 from allennlp.common.util import END_SYMBOL, START_SYMBOL
@@ -17,7 +18,7 @@ from allennlp.nn.beam_search import BeamSearch
 from allennlp.training.metrics import Metric
 
 
-@SeqDecoder.register("auto_regressive_seq_decoder")
+# @SeqDecoder.register("auto_regressive_seq_decoder")
 class AutoRegressiveSeqDecoder(SeqDecoder):
     """
     An autoregressive decoder that can be used for most seq2seq tasks.
@@ -161,7 +162,7 @@ class AutoRegressiveSeqDecoder(SeqDecoder):
 
         # shape: (batch_size, max_target_batch_sequence_length)
         target_mask = util.get_text_field_mask(target_tokens)
-
+        
         if self._scheduled_sampling_ratio == 0 and self._decoder_net.decodes_parallel:
             _, decoder_output = self._decoder_net(
                 previous_state=state,
@@ -213,7 +214,7 @@ class AutoRegressiveSeqDecoder(SeqDecoder):
                 output_projections, state = self._prepare_output_projections(
                     effective_last_prediction, state
                 )
-
+                
                 # list of tensors, shape: (batch_size, 1, num_classes)
                 step_logits.append(output_projections.unsqueeze(1))
 
@@ -400,15 +401,17 @@ class AutoRegressiveSeqDecoder(SeqDecoder):
         encoder_out: Dict[str, torch.LongTensor],
         target_tokens: Dict[str, torch.LongTensor] = None,
     ) -> Dict[str, torch.Tensor]:
+                
         state = encoder_out
         decoder_init_state = self._decoder_net.init_decoder_state(state)
         state.update(decoder_init_state)
-
+        
         if target_tokens:
-            output_dict = self._forward_loss(state, target_tokens)
+            state_forward_loss = deepcopy(state) if not self.training else state
+            output_dict = self._forward_loss(state_forward_loss, target_tokens)
         else:
             output_dict = {}
-
+        
         if not self.training:
             predictions = self._forward_beam_search(state)
             output_dict.update(predictions)

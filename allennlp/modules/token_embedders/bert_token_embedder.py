@@ -81,6 +81,7 @@ class BertEmbedder(TokenEmbedder):
         num_start_tokens: int = 1,
         num_end_tokens: int = 1,
         scalar_mix_parameters: List[float] = None,
+        all_layers: bool = False,
     ) -> None:
         super().__init__()
         self.bert_model = bert_model
@@ -88,15 +89,16 @@ class BertEmbedder(TokenEmbedder):
         self.max_pieces = max_pieces
         self.num_start_tokens = num_start_tokens
         self.num_end_tokens = num_end_tokens
-
-        if not top_layer_only:
+        self.all_layers = all_layers
+        
+        if not top_layer_only and not all_layers:
             self._scalar_mix = ScalarMix(
                 bert_model.config.num_hidden_layers,
                 do_layer_norm=False,
                 initial_scalar_parameters=scalar_mix_parameters,
                 trainable=scalar_mix_parameters is None,
                 num_features=bert_model.config.hidden_size,
-            )
+            ) 
         else:
             self._scalar_mix = None
 
@@ -238,6 +240,8 @@ class BertEmbedder(TokenEmbedder):
 
         if self._scalar_mix is not None:
             mix = self._scalar_mix(recombined_embeddings, input_mask)
+        elif self.all_layers:
+            mix = recombined_embeddings.transpose(0, 1).transpose(1, 2).flatten(1, 2)
         else:
             mix = recombined_embeddings[-1]
 
@@ -289,6 +293,7 @@ class PretrainedBertEmbedder(BertEmbedder):
         requires_grad: bool = False,
         top_layer_only: bool = False,
         scalar_mix_parameters: List[float] = None,
+        all_layers: bool = False,
     ) -> None:
         model = PretrainedBertModel.load(pretrained_model)
 
@@ -299,4 +304,5 @@ class PretrainedBertEmbedder(BertEmbedder):
             bert_model=model,
             top_layer_only=top_layer_only,
             scalar_mix_parameters=scalar_mix_parameters,
+            all_layers=all_layers,
         )

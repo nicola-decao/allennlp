@@ -150,6 +150,7 @@ class ComposedSeq2Seq(Model):
         embedded_input = self._source_text_embedder(source_tokens)
         # shape: (batch_size, max_input_sequence_length)
         source_mask = util.get_text_field_mask(source_tokens)
+#         source_mask = source_mask.unsqueeze(0).repeat(24, 1, 1).transpose(0, 1).transpose(1, 2).flatten(1, 2)
         # shape: (batch_size, max_input_sequence_length, encoder_output_dim)
         encoder_outputs = self._encoder(embedded_input, source_mask)
         return {"source_mask": source_mask, "encoder_outputs": encoder_outputs}
