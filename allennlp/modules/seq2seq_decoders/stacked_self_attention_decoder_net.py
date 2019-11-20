@@ -64,6 +64,7 @@ class StackedSelfAttentionDecoderNet(DecoderNet):
         dropout_prob: float = 0.1,
         residual_dropout_prob: float = 0.2,
         attention_dropout_prob: float = 0.1,
+        same_decoder_transformer: bool = False,
     ) -> None:
 
         super().__init__(
@@ -83,7 +84,8 @@ class StackedSelfAttentionDecoderNet(DecoderNet):
         self._dropout = nn.Dropout(dropout_prob)
         self._self_attention = Decoder(
             DecoderLayer(
-                decoding_dim, deepcopy(attn), deepcopy(attn), feed_forward, residual_dropout_prob
+                decoding_dim, deepcopy(attn), deepcopy(attn) if not same_decoder_transformer else None,
+                feed_forward, residual_dropout_prob, same_decoder_transformer
             ),
             num_layers,
         )
@@ -163,19 +165,32 @@ class DecoderLayer(nn.Module):
         src_attn: MultiHeadedAttention,
         feed_forward: F,
         dropout: float,
+        same_decoder_transformer: bool = False,
     ) -> None:
         super().__init__()
         self.size = size
         self.self_attn = self_attn
         self.src_attn = src_attn
         self.feed_forward = feed_forward
-        self.sublayer = _clones(SublayerConnection(size, dropout), 3)
+        self.sublayer = _clones(SublayerConnection(size, dropout), 2 + int(not same_decoder_transformer))
+        self.same_decoder_transformer = same_decoder_transformer
 
     def forward(
         self, x: torch.Tensor, memory: torch.Tensor, src_mask: torch.Tensor, tgt_mask: torch.Tensor
     ) -> torch.Tensor:
 
         "Follow Figure 1 (right) for connections."
-        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask))
-        x = self.sublayer[1](x, lambda x: self.src_attn(x, memory, memory, src_mask))
-        return self.sublayer[2](x, self.feed_forward)
+        if not self.same_decoder_transformer:
+            x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask))
+            x = self.sublayer[1](x, lambda x: self.src_attn(x, memory, memory, src_mask))
+            return self.sublayer[2](x, self.feed_forward)
+        else:
+            if not self.training and tgt_mask.shape[0] == 1:
+                tgt_mask = tgt_mask.repeat(src_mask.shape[0], 1, 1)
+                
+            x = self.sublayer[0](x, lambda x: self.self_attn(
+                x, torch.cat((memory, x), 1), torch.cat((memory, x), 1),
+                torch.cat((src_mask.repeat(1, tgt_mask.shape[1], 1), tgt_mask), 2)))
+            
+            return self.sublayer[1](x, self.feed_forward)
+        
