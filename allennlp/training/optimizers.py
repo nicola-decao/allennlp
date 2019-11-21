@@ -24,6 +24,8 @@ import torch
 from pytorch_pretrained_bert.optimization import BertAdam
 
 from allennlp.common import Params, Registrable
+from allennlp.training.radam import RAdam
+from allennlp.training.ranger import Ranger
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +156,8 @@ Registrable._registry[Optimizer] = {
     "averaged_sgd": torch.optim.ASGD,
     "bert_adam": BertAdam,
     "adamw": torch.optim.AdamW,
+    "radam": RAdam,
+    "ranger": Ranger,
 }
 
 
